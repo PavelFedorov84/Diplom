@@ -50,6 +50,21 @@ terraform plan
 
 terraform apply -auto-approve
 
+`Установка Ansible на Bastion`
+
+Плейбук:
+- устанавливает Ansible на Bastion;
+  
+- копирует папку проекта на Bastion;
+  
+- копирует ssh ключи на Bastion.
+
+cd Diplom/ansible-bastion
+
+ansible-playbook -i inventory.ini ansible_bastion.yml
+
+
+
 
 ....
 ....
