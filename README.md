@@ -37,10 +37,10 @@ ssh-keygen -t rsa -b 4096 -C "pavelfedorov84@gmail.com"
 
 'https://github.com/PavelFedorov84/Diplom/blob/main/img/1-1.png'
 
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-1.png))`
 
 
-
-
+![Название скриншота 2](ссылка на скриншот 2)`
 
 
 
@@ -72,6 +72,8 @@ ssh-keygen -t rsa -b 4096 -C "pavelfedorov84@gmail.com"
 
 `При необходимости прикрепитe сюда скриншоты
 ![Название скриншота 1](ссылка на скриншот 1)`
+
+
 
 
 ---
