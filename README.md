@@ -66,7 +66,7 @@ ansible-playbook -i inventory.ini ansible_bastion.yml
 
 `Настройка проекта через Ansible`
 
-ssh ubuntu@111.88.253.100
+Подключение к Bastion ssh ubuntu@111.88.253.100
 
 cd ansible
 
