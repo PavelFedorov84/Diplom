@@ -35,6 +35,8 @@ ssh-keygen -t rsa -b 4096 -C "pavelfedorov84@gmail.com"
 
 Инициализация YC CLI
 
+https://github.com/PavelFedorov84/Diplom/blob/main/img/1-1.png
+
 
 
 
