@@ -64,13 +64,15 @@ cd Diplom/ansible-bastion
 ansible-playbook -i inventory.ini ansible_bastion.yml
 
 
+`Настройка проекта через Ansible`
+
+cd ansible
+
+ansible-playbook playbook.yml
 
 
-....
-....
-....
-....
-```
+
+
 
 `При необходимости прикрепитe сюда скриншоты
 ![Название скриншота 2](ссылка на скриншот 2)`
