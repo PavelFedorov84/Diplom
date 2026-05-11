@@ -7,7 +7,49 @@
 
 ### Подготовка.
 
-`Установка terraform и Ansible на локальном хосте`
+`Установка YC CLI, Terraform и Ansible на локальном хосте`
+
+YC CLI
+
+sudo apt  install curl
+
+curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+
+
+Terraform
+
+sudo apt install snapd
+
+sudo snap install terraform --classic
+
+Ansible
+
+sudo apt install -y ansible
+
+
+
+Генерация SSH ключа 
+
+ssh-keygen -t rsa -b 4096 -C "pavelfedorov84@gmail.com"
+
+
+Инициализация YC CLI
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
