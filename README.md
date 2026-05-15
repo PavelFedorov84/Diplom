@@ -64,7 +64,8 @@ terraform apply -auto-approve
 
 `Установка Ansible на Bastion`
 
-Плейбук:
+Плейбук: https://github.com/PavelFedorov84/Diplom/tree/main/Ansible-bastion
+
 - устанавливает Ansible на Bastion;
   
 - копирует папку проекта на Bastion;
