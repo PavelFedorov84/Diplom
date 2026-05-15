@@ -1,0 +1,106 @@
+---
+- name: Install Ansible via pip (avoiding apt issues)
+  hosts: target_host
+  become: yes
+  vars:
+    ansible_user: ubuntu
+    target_ip: "89.169.132.153"
+    local_project_path: "/home/pasha/Diplom/ansible"
+    remote_project_path: "/home/ubuntu/ansible"
+    ssh_key_path: "~/.ssh/id_rsa"
+    ssh_pub_key_path: "~/.ssh/id_rsa.pub"
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      retries: 5
+      delay: 10
+      ignore_errors: yes  # Продолжить даже если обновление не удалось
+    
+    - name: Install Python and pip
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+        state: present
+    
+    - name: Upgrade pip
+      pip:
+        name: pip
+        state: latest
+    
+    - name: Install Ansible via pip
+      pip:
+        name: ansible
+        state: present
+      retries: 3
+      delay: 10
+
+    - name: Install jmespath for json_query filter
+      pip:
+        name: jmespath
+        state: present
+      retries: 3
+      delay: 10
+    
+    - name: Verify installation
+      command: ansible --version
+      register: result
+      changed_when: false
+    
+    - name: Show version
+      debug:
+        var: result.stdout_lines[0]
+
+    - name: Create .ssh directory on remote host
+      file:
+        path: "/home/{{ ansible_user }}/.ssh"
+        state: directory
+        mode: '0700'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    # Исправленная задача - используем модуль copy с локальным файлом
+    - name: Copy SSH public key to remote host
+      copy:
+        src: "{{ ssh_pub_key_path }}"
+        dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+        mode: '0600'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      tags: [ssh, keys]
+
+    # Исправленная задача - используем модуль copy с локальным файлом
+    - name: Copy SSH private key to remote host
+      copy:
+        src: "{{ ssh_key_path }}"
+        dest: "/home/{{ ansible_user }}/.ssh/id_rsa"
+        mode: '0600'
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      no_log: true
+      tags: [ssh, keys]
+
+    - name: Configure SSH keys (alternative method using authorized_key)
+      authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ lookup('file', ssh_pub_key_path) }}"
+        state: present
+      tags: [ssh, keys]
+
+    - name: Copy project directory to remote host
+      synchronize:
+        src: "{{ local_project_path }}/"
+        dest: "{{ remote_project_path }}/"
+        mode: push
+        recursive: yes
+        delete: no
+        rsync_opts:
+          - "--exclude=*.pyc"
+          - "--exclude=__pycache__"
+          - "--exclude=.git"
+      delegate_to: localhost
+      become: no
+      tags: [copy, project]
