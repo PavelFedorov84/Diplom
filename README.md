@@ -71,7 +71,8 @@ terraform apply -auto-approve
 ![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-11.png)
 
 СНИМКИ ДИСКОВ
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-1.png)
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-12.png)
+
 
 `Установка Ansible на Bastion`
 
