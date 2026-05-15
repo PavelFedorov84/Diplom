@@ -126,12 +126,12 @@ ansible-playbook playbook.yml
 
 
 В Kibana видно что индексы с логами поступают в Elasticsearch.
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-2.png))`
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-2.png)`
 
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-3.png))`
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-3.png)`
 
 В Zabbix добавлены необходимые хосты, хосты привязаны к шаблонам.
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-4.png))`
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-4.png)`
 
 
 
@@ -142,14 +142,14 @@ ansible-playbook playbook.yml
 
 Произведем нагрузочное тестирование.
 wrk -t4 -c100 -d60s http://.....
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-5.png))`
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-5.png)`
 
 
 На графиках Zabbix видно равномерное повышение нагрузки и исходящего трафика на web-серверах.
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-6.png))`
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-6.png)`
 
 На Kibana также происходит повышение нагрузки и увеличивается кол-во логов. 
-![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-7.png))`
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-7.png)`
 
 
 
