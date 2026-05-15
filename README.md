@@ -88,7 +88,14 @@ cd Diplom/ansible-bastion
 ansible-playbook -i inventory.ini ansible_bastion.yml
 
 
-`Настройка проекта через Ansible`
+
+
+`Настройка проекта через Ansible` https://github.com/PavelFedorov84/Diplom/tree/main/Ansible
+
+
+Основной плейбук playbook.yml, поочередно запускает остальные плейбуке.
+Такой подход позваоляет сделать настройку боллее гибкой для внесения правок и тестирования.
+
 
 Подключение к Bastion ssh ubuntu@111.88.253.100
 
