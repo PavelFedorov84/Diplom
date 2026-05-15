@@ -90,6 +90,7 @@ ansible-playbook -i inventory.ini ansible_bastion.yml
 
 
 
+
 `Настройка проекта через Ansible` https://github.com/PavelFedorov84/Diplom/tree/main/Ansible
 
 
