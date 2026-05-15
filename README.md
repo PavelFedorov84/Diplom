@@ -67,7 +67,7 @@ terraform apply -auto-approve
 
 ![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-9.png)
 
-
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-11.png)
 
 `Установка Ansible на Bastion`
 
