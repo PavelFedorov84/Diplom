@@ -1,0 +1,49 @@
+---
+- name: Add host  Zabbix, Add templates
+  hosts: localhost
+  gather_facts: no
+  vars:
+  
+    ansible_zabbix_url_path: "/zabbix/api_jsonrpc.php"
+    ansible_host: "zabbix-server.ru-central1.internal"
+    ansible_user: "Admin"
+    ansible_httpapi_pass: "zabbix"
+    ansible_httpapi_use_ssl: false
+    ansible_network_os: "community.zabbix.zabbix"
+    ansible_connection: "httpapi"
+    
+    
+    hosts_to_add:
+      - host_name: "web-server-1"
+        visible_name: "web-server-1"
+        fqdn: "web-server-1.ru-central1.internal"
+        groups:
+          - "Linux servers"
+        templates:
+          - "Linux by Zabbix agent"
+          - "Zabbix server health"
+      - host_name: "web-server-2"
+        visible_name: "web-server-2"
+        fqdn: "web-server-2.ru-central1.internal"
+        groups:
+          - "Linux servers"
+        templates:
+          - "Linux by Zabbix agent"
+          - "Zabbix server health"
+
+  tasks:
+    - name: Add templates
+      community.zabbix.zabbix_host:
+        host_name: "{{ item.host_name }}"
+        visible_name: "{{ item.visible_name }}"
+        host_groups: "{{ item.groups }}"
+        link_templates: "{{ item.templates }}"
+        interfaces:
+          - type: 1
+            main: 1
+            useip: 0
+            ip: ""
+            dns: "{{ item.fqdn }}"
+            port: 10050
+        state: present
+      loop: "{{ hosts_to_add }}"

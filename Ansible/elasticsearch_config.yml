@@ -1,0 +1,10 @@
+- name: Configure Elasticsearch
+  hosts: elasticsearch_servers
+  vars:
+    elasticsearch_admin_password: "{{ lookup('env', 'ES_PASSWORD') | default('elastic123') }}"
+    kibana_elasticsearch_password: "{{ lookup('env', 'ES_PASSWORD') | default('elastic123') }}"
+    ansible_user: ubuntu
+    ansible_ssh_private_key_file: /home/ubuntu/.ssh/id_rsa
+  become: yes
+  roles:
+    - elasticsearch

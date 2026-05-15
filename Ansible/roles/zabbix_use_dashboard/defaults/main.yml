@@ -1,0 +1,12 @@
+---
+zabbix_url: "http://zabbix-server.ru-central1.internal/zabbix/api_jsonrpc.php"
+zabbix_user: "Admin"
+zabbix_password: "zabbix"
+
+zabbix_monitored_hosts:
+  - name: "web-server-1"
+    description: "Web Server 1"
+  - name: "web-server-2"
+    description: "Web Server 2"
+
+dashboard_name_prefix: "USE Monitoring"

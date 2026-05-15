@@ -1,0 +1,10 @@
+server.host: "0.0.0.0"
+server.port: {{ kibana_server_port }}
+elasticsearch.hosts: ["{{ kibana_elasticsearch_host }}"]
+elasticsearch.requestTimeout: 30000
+i18n.locale: "en"
+telemetry.enabled: false
+newsfeed.enabled: false
+logging.dest: /var/log/kibana/kibana.log
+logging.verbose: false
+# Удалите или закомментируйте строки с username/password

@@ -1,0 +1,42 @@
+---
+- name: Login to Zabbix API
+  ansible.builtin.uri:
+    url: "{{ zabbix_url }}"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "user.login"
+      params:
+        username: "{{ zabbix_user }}"
+        password: "{{ zabbix_password }}"
+      id: 1
+    headers:
+      Content-Type: "application/json"
+  register: login_result
+  failed_when: login_result.json.error is defined or login_result.json.result is not defined
+
+- name: Set auth token
+  set_fact:
+    auth_token: "{{ login_result.json.result }}"
+
+- name: Create dashboards for each host
+  include_tasks: create_dashboard.yml
+  loop: "{{ zabbix_monitored_hosts }}"
+  loop_control:
+    loop_var: host_item
+
+- name: Logout from Zabbix API
+  ansible.builtin.uri:
+    url: "{{ zabbix_url }}"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "user.logout"
+      params: []
+      auth: "{{ auth_token }}"
+      id: 999
+    headers:
+      Content-Type: "application/json"
+  when: auth_token is defined

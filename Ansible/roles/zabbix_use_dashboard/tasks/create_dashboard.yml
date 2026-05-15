@@ -1,0 +1,72 @@
+---
+- name: Get host ID for {{ host_item.name }}
+  ansible.builtin.uri:
+    url: "{{ zabbix_url }}"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "host.get"
+      params:
+        filter:
+          host: "{{ host_item.name }}"
+        output: ["hostid", "name"]
+      auth: "{{ auth_token }}"
+      id: 2
+    headers:
+      Content-Type: "application/json"
+  register: host_info
+  ignore_errors: yes
+
+- name: Get items for {{ host_item.name }}
+  ansible.builtin.uri:
+    url: "{{ zabbix_url }}"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "item.get"
+      params:
+        hostids: "{{ host_info.json.result[0].hostid }}"
+        output: ["itemid", "key_", "name"]
+      auth: "{{ auth_token }}"
+      id: 3
+    headers:
+      Content-Type: "application/json"
+  register: host_items
+  when: host_info.json.result | length > 0
+
+- name: Create dashboard for {{ host_item.name }}
+  ansible.builtin.uri:
+    url: "{{ zabbix_url }}"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "dashboard.create"
+      params:
+        name: "USE Monitoring - {{ host_item.name }}"
+        pages:
+          - name: "USE Metrics"
+            widgets:
+              - type: "plaintext"
+                name: "Host Information"
+                x: 0
+                y: 0
+                width: 24
+                height: 4
+                fields:
+                  - type: 1
+                    name: "text"
+                    value: "USE Monitoring Dashboard for {{ host_item.name }}\nCreated by Ansible"
+      auth: "{{ auth_token }}"
+      id: 4
+    headers:
+      Content-Type: "application/json"
+  register: dashboard_result
+  ignore_errors: yes
+
+- name: Display dashboard URL
+  debug:
+    msg: "Dashboard created: {{ zabbix_url | replace('/api_jsonrpc.php', '/zabbix.php?action=dashboard.view&dashboardid=' + (dashboard_result.json.result.dashboardids[0] | string)) }}"
+  when: dashboard_result.json.result is defined

@@ -1,0 +1,21 @@
+---
+# main.yml - главный playbook
+
+- name: Run Web servers config
+  ansible.builtin.import_playbook: web_servers_config.yml
+
+- name: Run Zabbix server config
+  ansible.builtin.import_playbook: zabbix_server_config.yml
+
+- name: Run Elasticsearch config
+  ansible.builtin.import_playbook: elasticsearch_config.yml
+
+
+- name: Run Kibana config
+  ansible.builtin.import_playbook: kibana_config.yml
+
+- name: Run add host zabbix server
+  ansible.builtin.import_playbook: add_hosts.yml
+
+#- name: Run third playbook
+# ansible.builtin.import_playbook: cleanup.yml
