@@ -65,9 +65,13 @@ terraform apply -auto-approve
 
 ![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-10.png)
 
+ВМ
 ![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-9.png)
 
+ГРУППЫ
 ![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-11.png)
+
+
 
 `Установка Ansible на Bastion`
 
@@ -91,6 +95,7 @@ ansible-playbook -i inventory.ini ansible_bastion.yml
 cd ansible
 
 ansible-playbook playbook.yml
+
 ![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-8.png)
 ---
 
