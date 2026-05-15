@@ -155,6 +155,8 @@ wrk -t4 -c100 -d60s http://.....
 
 
 
+http://84.252.140.233/
+
 bastion.ru-central1.internal   89.169.132.153
 
 web-server-1.ru-central1.internal 192.168.20.26
