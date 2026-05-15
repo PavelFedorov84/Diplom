@@ -16,7 +16,7 @@
         update_cache: yes
       retries: 5
       delay: 10
-      ignore_errors: yes  # Продолжить даже если обновление не удалось
+      ignore_errors: yes
     
     - name: Install Python and pip
       apt:
@@ -62,7 +62,7 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
 
-    # Исправленная задача - используем модуль copy с локальным файлом
+    
     - name: Copy SSH public key to remote host
       copy:
         src: "{{ ssh_pub_key_path }}"
@@ -72,7 +72,7 @@
         group: "{{ ansible_user }}"
       tags: [ssh, keys]
 
-    # Исправленная задача - используем модуль copy с локальным файлом
+   
     - name: Copy SSH private key to remote host
       copy:
         src: "{{ ssh_key_path }}"
