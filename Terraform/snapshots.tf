@@ -2,10 +2,10 @@ resource "yandex_compute_snapshot_schedule" "daily_all" {
   name = "daily-all-disks"
 
   schedule_policy {
-    expression = "0 0 * * *" # ежедневно в полночь
+    expression = "0 0 * * *"
   }
 
-  retention_period = "168h" # 7 дней
+  retention_period = "168h"
 
   disk_ids = concat(
     [yandex_compute_instance.bastion.boot_disk[0].disk_id],
