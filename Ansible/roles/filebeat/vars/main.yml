@@ -1,0 +1,5 @@
+---
+filebeat_elasticsearch_host: "localhost:9200"
+filebeat_index_name: "nginx-logs-%{+yyyy.MM.dd}"
+filebeat_template_name: "nginx-logs"
+filebeat_template_pattern: "nginx-logs-*"

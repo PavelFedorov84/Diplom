@@ -1,0 +1,38 @@
+# ======================== Elasticsearch Configuration =========================
+cluster.name: {{ elasticsearch_cluster_name }}
+node.name: {{ elasticsearch_node_name }}
+node.master: true
+node.data: true
+node.ingest: true
+
+# Paths
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+# Network
+network.host: {{ elasticsearch_network_host }}
+http.port: {{ elasticsearch_http_port }}
+transport.tcp.port: 9300
+
+# Discovery
+discovery.type: single-node
+
+# Security (disabled for minimal setup)
+xpack.security.enabled: false
+xpack.monitoring.enabled: false
+xpack.graph.enabled: false
+xpack.watcher.enabled: false
+
+# Memory optimization for small VMs
+bootstrap.memory_lock: false
+indices.fielddata.cache.size: 20%
+indices.queries.cache.size: 10%
+indices.memory.index_buffer_size: 10%
+
+# Recovery settings
+gateway.recover_after_nodes: 1
+action.destructive_requires_name: true
+
+# Logging
+logger.org.elasticsearch.discovery: WARN
+logger.org.elasticsearch.cluster.service: WARN

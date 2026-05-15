@@ -1,0 +1,162 @@
+---
+- name: Gather facts
+  setup:
+
+- name: Set default variables if not defined
+  set_fact:
+    zabbix_agent_server: "{{ zabbix_agent_server | default(hostvars['zbx-srv-01']['ansible_host'] | default('localhost')) }}"
+    zabbix_agent_listenport: "{{ zabbix_agent_listenport | default(10050) }}"
+    zabbix_agent_startagents: "{{ zabbix_agent_startagents | default(3) }}"
+    zabbix_agent_hostmetadata: "{{ zabbix_agent_hostmetadata | default('linux') }}"
+    zabbix_agent_timeout: "{{ zabbix_agent_timeout | default(30) }}"
+    zabbix_agent_allowkey: "{{ zabbix_agent_allowkey | default(['system.run[*]', 'vfs.file.contents[*]']) }}"
+
+- name: Install Zabbix repository
+  shell: |
+    set -e
+    if [ ! -f /etc/apt/sources.list.d/zabbix.list ]; then
+      wget -q https://repo.zabbix.com/zabbix/6.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.4-1+ubuntu22.04_all.deb
+      dpkg -i zabbix-release_6.4-1+ubuntu22.04_all.deb
+      apt-get update -qq
+    fi
+  args:
+    creates: /etc/apt/sources.list.d/zabbix.list
+    executable: /bin/bash
+
+- name: Install Zabbix agent packages
+  apt:
+    name:
+      - zabbix-agent
+      - zabbix-sender
+      - sysstat
+    state: present
+    update_cache: yes
+
+- name: Create scripts directory
+  file:
+    path: /etc/zabbix/scripts
+    state: directory
+    owner: zabbix
+    group: zabbix
+    mode: '0755'
+
+- name: Deploy HTTP monitoring script
+  copy:
+    content: |
+      #!/bin/bash
+      # HTTP monitoring script for Zabbix
+      LOG_FILE="/var/log/nginx/access.log"
+      
+      # If nginx log doesn't exist, try apache
+      if [ ! -f "$LOG_FILE" ]; then
+          LOG_FILE="/var/log/apache2/access.log"
+      fi
+      
+      # If no web server logs, exit gracefully
+      if [ ! -f "$LOG_FILE" ]; then
+          echo "0"
+          exit 0
+      fi
+      
+      case "$1" in
+          requests_per_sec)
+              tail -n 1000 "$LOG_FILE" 2>/dev/null | awk '{print $4}' | cut -d: -f2,3 | uniq -c | tail -1 | awk '{print $1}'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          status_2xx)
+              tail -n 1000 "$LOG_FILE" 2>/dev/null | awk '{print $9}' | grep -c '^2'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          status_4xx)
+              tail -n 1000 "$LOG_FILE" 2>/dev/null | awk '{print $9}' | grep -c '^4'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          status_5xx)
+              tail -n 1000 "$LOG_FILE" 2>/dev/null | awk '{print $9}' | grep -c '^5'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          avg_response_time)
+              tail -n 1000 "$LOG_FILE" 2>/dev/null | awk '{print $NF}' | awk '{ sum += $1; n++ } END { if (n > 0) print sum / n; else print 0; }'
+              ;;
+          *)
+              echo "Usage: $0 {requests_per_sec|status_2xx|status_4xx|status_5xx|avg_response_time}"
+              exit 1
+      esac
+    dest: /etc/zabbix/scripts/http_monitor.sh
+    mode: '0755'
+    owner: zabbix
+    group: zabbix
+
+- name: Deploy system metrics script
+  copy:
+    content: |
+      #!/bin/bash
+      # System USE metrics collector
+      case "$1" in
+          cpu_saturation)
+              # Get load average for 1 minute
+              uptime 2>/dev/null | awk -F'load average:' '{ print $2 }' | awk '{ print $1 }' | sed 's/,//'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          cpu_errors)
+              # Count hardware errors
+              dmesg 2>/dev/null | grep -i "mce\|cpu.*error\|hardware error" | wc -l
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          mem_saturation)
+              # Swap usage
+              vmstat 1 2 2>/dev/null | tail -1 | awk '{print $7}'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          disk_saturation)
+              # Disk queue
+              iostat -x 1 2 2>/dev/null | grep -E '^sd|^vd|^nvme' | tail -n +2 | awk '{print $16}' | grep -v '^$' | awk '{ sum += $1 } END { if (NR > 0) print sum; else print 0; }'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          network_errors)
+              # Network errors
+              cat /proc/net/dev 2>/dev/null | tail -n +3 | awk '{s+=$4+$12} END {print s+0}'
+              if [ $? -ne 0 ]; then echo "0"; fi
+              ;;
+          *)
+              echo "Unknown metric"
+              exit 1
+      esac
+    dest: /etc/zabbix/scripts/system_metrics.sh
+    mode: '0755'
+    owner: zabbix
+    group: zabbix
+
+- name: Configure Zabbix agent
+  template:
+    src: zabbix_agentd.conf.j2
+    dest: /etc/zabbix/zabbix_agentd.conf
+    owner: zabbix
+    group: zabbix
+    mode: '0640'
+  notify: restart zabbix agent
+
+- name: Create sudoers for Zabbix
+  lineinfile:
+    path: /etc/sudoers.d/zabbix
+    line: "zabbix ALL=(ALL) NOPASSWD: {{ item }}"
+    create: yes
+    validate: 'visudo -cf %s'
+  loop:
+    - /etc/zabbix/scripts/http_monitor.sh
+    - /etc/zabbix/scripts/system_metrics.sh
+    - /usr/bin/tail
+    - /usr/sbin/iostat
+    - /usr/bin/vmstat
+    - /bin/cat
+    - /usr/bin/awk
+
+- name: Start and enable Zabbix agent
+  systemd:
+    name: zabbix-agent
+    state: started
+    enabled: yes
+  register: agent_started
+  retries: 3
+  delay: 5
+  until: agent_started is success

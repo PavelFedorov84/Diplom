@@ -1,0 +1,92 @@
+---
+- name: Install Filebeat 7.x from Yandex mirror
+  block:
+    - name: Add Yandex mirror for Filebeat 7.x
+      apt_repository:
+        repo: "deb [trusted=yes] https://mirror.yandex.ru/mirrors/elastic/7/ stable main"
+        state: present
+        update_cache: yes
+
+    - name: Install Filebeat
+      apt:
+        name: filebeat
+        state: present
+        update_cache: yes
+
+- name: Stop Filebeat to clean registry
+  systemd:
+    name: filebeat
+    state: stopped
+  ignore_errors: yes
+
+- name: Remove old Filebeat registry to prevent conflicts
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/filebeat/registry
+    - /var/lib/filebeat/meta.json
+  ignore_errors: yes
+
+- name: Create nginx log directory if not exists
+  file:
+    path: /var/log/nginx
+    state: directory
+    mode: '0755'
+
+- name: Create test log entries for access.log
+  copy:
+    content: |
+      {% for i in range(1, 11) %}
+      {{ ansible_default_ipv4.address }} - - [{{ ansible_date_time.day }}/{{ ansible_date_time.month }}/{{ ansible_date_time.year }}:{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }} +0000] "GET /test/page HTTP/1.1" 200 612
+      {% endfor %}
+      {% for i in range(1, 6) %}
+      {{ ansible_default_ipv4.address }} - - [{{ ansible_date_time.day }}/{{ ansible_date_time.month }}/{{ ansible_date_time.year }}:{{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }} +0000] "GET /additional/page HTTP/1.1" 200 456
+      {% endfor %}
+    dest: /var/log/nginx/access.log
+    force: no
+    mode: '0644'
+  ignore_errors: yes
+
+- name: Create test log entries for error.log
+  copy:
+    content: |
+      {% for i in range(1, 6) %}
+      {{ ansible_date_time.year }}/{{ ansible_date_time.month }}/{{ ansible_date_time.day }} {{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }} [error] {{ i }}#0: *{{ i }} test error message, client: {{ ansible_default_ipv4.address }}, server: localhost, request: "GET /error-page HTTP/1.1", host: "localhost"
+      {% endfor %}
+      {% for i in range(1, 4) %}
+      {{ ansible_date_time.year }}/{{ ansible_date_time.month }}/{{ ansible_date_time.day }} {{ ansible_date_time.hour }}:{{ ansible_date_time.minute }}:{{ ansible_date_time.second }} [error] {{ i }}#0: *{{ i }} additional error, client: {{ ansible_default_ipv4.address }}, server: localhost, request: "GET /bad-request HTTP/1.1"
+      {% endfor %}
+    dest: /var/log/nginx/error.log
+    force: no
+    mode: '0644'
+  ignore_errors: yes
+
+- name: Configure Filebeat
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    mode: '0644'
+  notify: restart filebeat
+
+- name: Start Filebeat
+  systemd:
+    name: filebeat
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Wait for Filebeat to start
+  wait_for:
+    timeout: 10
+
+- name: Display Filebeat status
+  debug:
+    msg: |
+      ============================================
+      Filebeat installed and configured
+      Elasticsearch: http://elasticsearch-server.ru-central1.internal:9200
+      Index pattern: nginx-logs-*
+      Access logs: /var/log/nginx/access.log
+      Error logs: /var/log/nginx/error.log
+      ============================================

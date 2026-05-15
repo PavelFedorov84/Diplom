@@ -1,0 +1,142 @@
+---
+- name: Install Elasticsearch 7.x from Yandex mirror
+  block:
+    - name: Add Yandex mirror for Elastic 7.x
+      apt_repository:
+        repo: "deb [trusted=yes] https://mirror.yandex.ru/mirrors/elastic/7/ stable main"
+        state: present
+        update_cache: yes
+
+    - name: Install Elasticsearch
+      apt:
+        name: elasticsearch
+        state: present
+        update_cache: yes
+
+- name: Stop Elasticsearch if running
+  systemd:
+    name: elasticsearch
+    state: stopped
+  ignore_errors: yes
+
+- name: Remove old data to prevent corruption
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/elasticsearch
+    - /var/log/elasticsearch
+  ignore_errors: yes
+
+- name: Create clean directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0755'
+  loop:
+    - /etc/elasticsearch
+    - /var/lib/elasticsearch
+    - /var/log/elasticsearch
+
+- name: Configure Elasticsearch YAML
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0644'
+
+- name: Configure JVM options
+  block:
+    - name: Create jvm.options.d directory
+      file:
+        path: /etc/elasticsearch/jvm.options.d
+        state: directory
+        owner: elasticsearch
+        group: elasticsearch
+        mode: '0755'
+
+    - name: Set JVM heap size
+      copy:
+        content: |
+          -Xms{{ elasticsearch_heap_size }}
+          -Xmx{{ elasticsearch_heap_size }}
+        dest: /etc/elasticsearch/jvm.options.d/heap.options
+        owner: elasticsearch
+        group: elasticsearch
+        mode: '0644'
+
+- name: Configure system settings
+  block:
+    - name: Set vm.max_map_count
+      sysctl:
+        name: vm.max_map_count
+        value: '262144'
+        state: present
+        reload: yes
+        sysctl_set: yes
+
+    - name: Set limits for elasticsearch
+      copy:
+        content: |
+          elasticsearch soft nofile 65536
+          elasticsearch hard nofile 65536
+          elasticsearch soft nproc 4096
+          elasticsearch hard nproc 4096
+        dest: /etc/security/limits.d/elasticsearch.conf
+        mode: '0644'
+
+- name: Start Elasticsearch
+  systemd:
+    name: elasticsearch
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  register: elasticsearch_start
+
+- name: Wait for Elasticsearch to start
+  wait_for:
+    port: "{{ elasticsearch_http_port }}"
+    host: localhost
+    delay: 10
+    timeout: 60
+  register: wait_result
+  ignore_errors: yes
+
+- name: Check if Elasticsearch is running
+  command: systemctl is-active elasticsearch
+  register: es_active
+  ignore_errors: yes
+
+- name: Show logs if not running
+  command: journalctl -u elasticsearch.service -n 50 --no-pager
+  register: es_logs
+  when: es_active.stdout != "active"
+  
+- name: Display error logs
+  debug:
+    msg: "{{ es_logs.stdout_lines }}"
+  when: es_active.stdout != "active"
+
+- name: Test Elasticsearch connection
+  uri:
+    url: "http://localhost:{{ elasticsearch_http_port }}/_cluster/health"
+    method: GET
+    status_code: 200
+  register: test_result
+  ignore_errors: yes
+  when: es_active.stdout == "active"
+
+- name: Display Elasticsearch status
+  debug:
+    msg: |
+      ============================================
+      Elasticsearch 7.x installed successfully!
+      Version: 7.x (from Yandex mirror)
+      API URL: http://{{ ansible_fqdn }}:{{ elasticsearch_http_port }}
+      Cluster: {{ elasticsearch_cluster_name }}
+      Status: {{ test_result.json.status if test_result is success else 'checking...' }}
+      ============================================
+  when: es_active.stdout == "active"

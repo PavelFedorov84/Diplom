@@ -1,0 +1,91 @@
+- name: Install Kibana 7.x from Yandex mirror
+  block:
+    - name: Add Yandex mirror for Kibana 7.x
+      apt_repository:
+        repo: "deb [trusted=yes] https://mirror.yandex.ru/mirrors/elastic/7/ stable main"
+        state: present
+        update_cache: yes
+
+    - name: Install Kibana
+      apt:
+        name: kibana
+        state: present
+        update_cache: yes
+
+- name: Create log directory and file
+  file:
+    path: /var/log/kibana
+    state: directory
+    owner: kibana
+    group: kibana
+    mode: '0755'
+
+- name: Create log file
+  file:
+    path: /var/log/kibana/kibana.log
+    state: touch
+    owner: kibana
+    group: kibana
+    mode: '0644'
+
+- name: Configure Kibana
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: kibana
+    group: kibana
+    mode: '0644'
+  notify: restart kibana
+
+- name: Fix OpenSSL issue for Kibana
+  block:
+    - name: Create systemd override directory
+      file:
+        path: /etc/systemd/system/kibana.service.d
+        state: directory
+        mode: '0755'
+
+    - name: Add OpenSSL legacy provider configuration
+      copy:
+        content: |
+          [Service]
+          Environment=NODE_OPTIONS="--openssl-legacy-provider"
+          Restart=always
+          RestartSec=10
+        dest: /etc/systemd/system/kibana.service.d/override.conf
+        mode: '0644'
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+
+- name: Start Kibana
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+
+- name: Wait for Kibana
+  wait_for:
+    port: "{{ kibana_server_port }}"
+    delay: 10
+    timeout: 120
+
+- name: Test Kibana health
+  uri:
+    url: "http://localhost:{{ kibana_server_port }}/api/status"
+    return_content: yes
+    status_code: 200
+  register: kibana_status
+  retries: 10
+  delay: 10
+  until: kibana_status.status == 200
+
+- name: Display Kibana info
+  debug:
+    msg: |
+      ============================================
+      Kibana 7.x installed successfully!
+      URL: http://{{ ansible_fqdn }}:{{ kibana_server_port }}
+      Health check: {{ kibana_status.content | from_json | json_query('status.overall.state') }}
+      ============================================
