@@ -98,7 +98,7 @@ ansible-playbook -i inventory.ini ansible_bastion.yml
 Такой подход позваоляет сделать настройку боллее гибкой для внесения правок и тестирования.
 
 
-Подключение к Bastion ssh ubuntu@111.88.253.100
+Подключение к Bastion ssh ubuntu@89.169.132.153
 
 cd ansible
 
