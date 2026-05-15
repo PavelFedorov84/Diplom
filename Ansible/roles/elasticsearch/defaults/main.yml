@@ -1,8 +1,0 @@
----
-elasticsearch_version: "7.x"
-elasticsearch_cluster_name: "minimal-cluster"
-elasticsearch_node_name: "{{ ansible_hostname }}"
-elasticsearch_network_host: "0.0.0.0"
-elasticsearch_http_port: 9200
-elasticsearch_heap_size: "512m"
-elasticsearch_admin_password: "elastic123"
