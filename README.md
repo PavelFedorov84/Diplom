@@ -151,4 +151,19 @@ wrk -t4 -c100 -d60s http://.....
 
 
 
+bastion.ru-central1.internal   89.169.132.153
+
+web-server-1.ru-central1.internal 192.168.20.26
+
+web-server-2.ru-central1.internal 192.168.21.9
+
+elasticsearch-server.ru-central1.internal 192.168.20.19
+
+kibana-server.ru-central1.internal 93.77.179.192
+
+zabbix-server.ru-central1.internal 93.77.190.28
+
+
+
+
 
