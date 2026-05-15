@@ -97,6 +97,18 @@ ansible-playbook -i inventory.ini ansible_bastion.yml
 Основной плейбук playbook.yml, поочередно запускает остальные плейбуке.
 Такой подход позваоляет сделать настройку боллее гибкой для внесения правок и тестирования.
 
+Последовательность запуска (playbook.yml):
+
+Web servers config (nginx, zabbix_agent, filebeat)
+
+Zabbix server config
+
+Elasticsearch config
+
+Kibana config
+
+Add hosts to Zabbix
+
 
 Подключение к Bastion ssh ubuntu@89.169.132.153
 
