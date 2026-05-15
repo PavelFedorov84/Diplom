@@ -62,6 +62,13 @@ terraform plan
 
 terraform apply -auto-approve
 
+
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-8.png)
+
+![Название скриншота](https://github.com/PavelFedorov84/Diplom/blob/main/img/1-9.png)
+
+
+
 `Установка Ansible на Bastion`
 
 Плейбук: https://github.com/PavelFedorov84/Diplom/tree/main/Ansible-bastion
