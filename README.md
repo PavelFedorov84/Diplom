@@ -157,7 +157,7 @@ wrk -t4 -c100 -d60s http://.....
 
 http://84.252.140.233/
 
-bastion.ru-central1.internal   89.169.132.153
+bastion.ru-central1.internal   89.169.139.116
 
 web-server-1.ru-central1.internal 192.168.20.26
 
@@ -165,9 +165,9 @@ web-server-2.ru-central1.internal 192.168.21.9
 
 elasticsearch-server.ru-central1.internal 192.168.20.19
 
-kibana-server.ru-central1.internal 93.77.179.192
+kibana-server.ru-central1.internal http://51.250.73.235:5601
 
-zabbix-server.ru-central1.internal 93.77.190.28
+zabbix-server.ru-central1.internal http://51.250.86.160/zabbix
 
 
 
